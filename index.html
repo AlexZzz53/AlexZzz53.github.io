@@ -179,13 +179,16 @@
             overflow: hidden;
         }
         #visualizer { width: 100%; height: 100%; display: block; }
+        
         .buttons-row { display: flex; gap: 10px; justify-content: center; }
+        
         .mech-btn {
             width: 40px; height: 40px;
             background: #888;
             border: none;
             border-bottom: 4px solid #555;
             border-radius: 50%;
+            font-size: 14px; /* Adjust for unicode icons */
         }
         .mech-btn:active { transform: translateY(2px); border-bottom: 1px solid #555; }
         .mech-btn.play { background: var(--neon-cyan); }
@@ -462,11 +465,19 @@
                 <div class="lcd-display">
                     <canvas id="visualizer"></canvas>
                 </div>
+                
+                <!-- UPDATED BUTTON ROW -->
                 <div class="buttons-row">
                     <button class="mech-btn sfx-trigger" onclick="toggleTheme()">☀</button>
+                    
+                    <!-- Previous Track -->
+                    <button class="mech-btn sfx-trigger" title="Prev">|◀</button>
+                    
                     <button class="mech-btn stop sfx-trigger" onclick="musicControl('stop')">■</button>
                     <button class="mech-btn play sfx-trigger" onclick="musicControl('play')">▶</button>
-                    <button class="mech-btn sfx-trigger">FF</button>
+                    
+                    <!-- Next Track -->
+                    <button class="mech-btn sfx-trigger" title="Next">▶|</button>
                 </div>
             </div>
         </div>
@@ -634,6 +645,9 @@
     </script>
     <style>
         @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>
     </style>
 </body>
 </html>
