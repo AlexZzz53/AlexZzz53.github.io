@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETRO // CASSETTE // DECK</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1a1a1a;
+            --plastic-black: #0a0a0a;
+            --neon-pink: #ff0055;
+            --neon-cyan: #00f0ff;
+            --neon-yellow: #faff00;
+            --led-green: #33ff00;
+            --text-main: #e0e0e0;
+        }
+
+        * { box-sizing: border-box; cursor: crosshair; }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'VT323', monospace;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- POWER ON OVERLAY (New) --- */
+        #power-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.5s;
+        }
+        #power-btn {
+            background: transparent;
+            border: 4px solid var(--neon-pink);
+            color: var(--neon-pink);
+            padding: 20px 40px;
+            font-family: 'Press Start 2P';
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+        #power-btn:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 30px var(--neon-pink); }
+
+        /* --- CRT Overlay --- */
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker { 0% {opacity: 0.95;} 100% {opacity: 1;} }
+        @keyframes pulse { 0% {opacity: 0.5;} 50% {opacity: 1;} 100% {opacity: 0.5;} }
+
+        /* --- Layout --- */
+        .main-deck {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            position: relative;
+            opacity: 0; /* Hidden until power on */
+            transition: opacity 1s;
+        }
+
+        /* --- Left Side: Screen --- */
+        .screen-container {
+            flex: 2;
+            background: #050505;
+            border: 15px solid #333;
+            border-radius: 20px;
+            box-shadow: inset 0 0 20px #000;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .content-section { display: none; text-align: center; width: 100%; }
+        .content-section.active { display: block; animation: turnOn 0.4s ease-out; }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 3rem;
+            color: var(--neon-yellow);
+            text-shadow: 4px 4px var(--neon-pink);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        p { font-size: 1.5rem; color: var(--neon-cyan); letter-spacing: 1px; }
+
+        @keyframes turnOn {
+            0% { transform: scaleY(0.01) scaleX(0); opacity: 0; }
+            50% { transform: scaleY(0.01) scaleX(1); opacity: 1; }
+            100% { transform: scaleY(1) scaleX(1); }
+        }
+
+        /* --- Right Side: Controls --- */
+        .control-panel {
+            flex: 1;
+            background: #222;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-left: 4px solid #111;
+            box-shadow: inset 10px 0 20px rgba(0,0,0,0.5);
+        }
+
+        .tape-slot {
+            background: #444;
+            margin-bottom: 15px;
+            height: 80px;
+            border-radius: 4px;
+            position: relative;
+            transition: transform 0.1s; /* Faster for click feel */
+            border-bottom: 6px solid #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tape-slot:active { transform: translateY(4px); border-bottom: 2px solid #111; }
+        
+        .tape-1 { background: var(--neon-pink); color: #000; }
+        .tape-2 { background: var(--neon-cyan); color: #000; }
+        .tape-3 { background: var(--neon-yellow); color: #000; }
+        .tape-4 { background: #fff; color: #000; }
+        .tape-5 { background: #888; color: #000; border: 2px dashed #000; }
+
+        .tape-label {
+            font-family: 'Marker Felt', 'Comic Sans MS', fantasy;
+            font-size: 1.5rem;
+            transform: rotate(-2deg);
+            background: #fff;
+            padding: 2px 10px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            pointer-events: none; /* Pass clicks to parent */
+        }
+
+        /* --- Visualizer LCD (Updated) --- */
+        .player-controls {
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .lcd-display {
+            background: #2b3a28;
+            height: 60px; /* Fixed height for canvas */
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px #000;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* The Canvas for Visualization */
+        #visualizer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .buttons-row { display: flex; gap: 10px; justify-content: center; }
+        .mech-btn {
+            width: 40px; height: 40px;
+            background: #888;
+            border: none;
+            border-bottom: 4px solid #555;
+            border-radius: 50%;
+        }
+        .mech-btn:active { transform: translateY(2px); border-bottom: 1px solid #555; }
+        .mech-btn.play { background: var(--neon-cyan); }
+        .mech-btn.stop { background: var(--neon-pink); }
+
+        /* --- Glitch Text --- */
+        .glitch-text { position: relative; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .glitch-text::before {
+            left: 2px; text-shadow: -1px 0 red; clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; text-shadow: -1px 0 blue; clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 30px, 0); }
+            20% { clip: rect(80px, 9999px, 100px, 0); }
+            100% { clip: rect(20px, 9999px, 70px, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 0. Power On / Audio Context Starter -->
+    <div id="power-overlay">
+        <h1 style="font-size: 1rem; margin-bottom: 20px; color: #fff; font-family: monospace;">SYSTEM OFFLINE</h1>
+        <button id="power-btn">INITIALIZE SYSTEM</button>
+    </div>
+
+    <!-- Audio Elements (Hidden) -->
+    <!-- 替换下面的 src 为你的本地文件路径 -->
+    <audio id="bg-music" loop crossorigin="anonymous"></audio>
+    <audio id="sfx-click"></audio>
+    <audio id="sfx-hover"></audio>
+    <audio id="sfx-insert"></audio>
+
+    <div class="crt-overlay"></div>
+
+    <div class="main-deck" id="deck">
+        
+        <!-- SCREEN AREA -->
+        <div class="screen-container" id="screen">
+            
+            <!-- Profile -->
+            <section id="profile" class="content-section active">
+                <h1 class="glitch-text" data-text="USER: SYSTEM_ADMIN">USER: SYSTEM_ADMIN</h1>
+                <p>LEVEL 99 INTERACTION DESIGNER</p>
+                <div style="margin-top:30px; border: 2px dashed var(--neon-cyan); padding: 20px;">
+                    CREATIVITY: [||||||||||] 100%<br>
+                    LOGIC: [||||||||..] 80%
+                </div>
+            </section>
+
+            <!-- Portfolio -->
+            <section id="portfolio" class="content-section">
+                <h1>INSERTED TAPE: <br><span style="color:var(--neon-pink)">WORKS_VOL.1</span></h1>
+                <div style="display:flex; gap:20px; justify-content:center; margin-top:30px;">
+                    <div class="spin-disk" style="width:100px; height:100px; background:var(--text-main);"></div>
+                    <div class="spin-disk" style="width:100px; height:100px; background:var(--text-main);"></div>
+                </div>
+                <p style="margin-top:20px;">PLAYING...</p>
+            </section>
+
+            <!-- Tools -->
+            <section id="stack" class="content-section">
+                <h1>SYSTEM ARCHITECTURE</h1>
+                <p>HARDWARE & SOFTWARE</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-top: 20px;">
+                    <div>> REACT.JS</div>
+                    <div>> THREE.JS</div>
+                    <div>> BLENDER</div>
+                    <div>> FIGMA</div>
+                </div>
+            </section>
+
+            <!-- Playground -->
+            <section id="playground" class="content-section">
+                <h1 style="font-family:'Courier New';">SANDBOX_MODE</h1>
+                <canvas id="noiseCanvas" style="width: 200px; height: 100px; background:#000; margin: 20px auto;"></canvas>
+            </section>
+
+            <!-- Contact -->
+            <section id="contact" class="content-section">
+                <h1>ANSWERING MACHINE</h1>
+                <input type="text" placeholder="ENTER_MESSAGE..." style="background:transparent; border:none; border-bottom:2px solid var(--neon-cyan); color:white; font-family:'VT323'; font-size:2rem; margin-top:20px; width:80%; outline:none;">
+                <br>
+                <button class="mech-btn-flat" style="margin-top:20px; padding:10px 30px; background:var(--neon-pink); border:none; cursor:pointer; font-family: 'Press Start 2P';">SEND</button>
+            </section>
+
+        </div>
+
+        <!-- CONTROLS AREA -->
+        <div class="control-panel">
+            <div>
+                <div style="color:#666; font-size:0.8rem; margin-bottom:10px;">SELECT TRACK (CLICK)</div>
+                
+                <!-- Added 'sfx-trigger' class for hover sounds -->
+                <div class="tape-slot tape-1 sfx-trigger" onclick="switchTrack('profile')">
+                    <div class="tape-label">PROFILE.mp3</div>
+                </div>
+                <div class="tape-slot tape-2 sfx-trigger" onclick="switchTrack('portfolio')">
+                    <div class="tape-label">WORKS_MIX</div>
+                </div>
+                <div class="tape-slot tape-3 sfx-trigger" onclick="switchTrack('stack')">
+                    <div class="tape-label">TOOLS & GEAR</div>
+                </div>
+                <div class="tape-slot tape-4 sfx-trigger" onclick="switchTrack('playground')">
+                    <div class="tape-label">PLAYGROUND</div>
+                </div>
+                <div class="tape-slot tape-5 sfx-trigger" onclick="switchTrack('contact')">
+                    <div class="tape-label">CALL ME</div>
+                </div>
+            </div>
+
+            <!-- Music Player & Visualizer -->
+            <div class="player-controls">
+                <div class="lcd-display">
+                    <!-- Canvas for Audio Visualization -->
+                    <canvas id="visualizer"></canvas>
+                </div>
+                <div class="buttons-row">
+                    <button class="mech-btn sfx-trigger" onclick="toggleTheme()">☀</button>
+                    <button class="mech-btn stop sfx-trigger" onclick="musicControl('stop')">■</button>
+                    <button class="mech-btn play sfx-trigger" onclick="musicControl('play')">▶</button>
+                    <button class="mech-btn sfx-trigger">FF</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // =================================================================
+        // 1. ASSET CONFIGURATION (PLEASE EDIT THIS)
+        // =================================================================
+        const ASSETS = {
+            // 填入你的本地文件路径，例如 'assets/music.mp3'
+            bgMusic: 'music_placeholder.mp3', 
+            clickSfx: 'click_placeholder.mp3',
+            hoverSfx: 'hover_placeholder.mp3',
+            insertSfx: 'insert_placeholder.mp3'
+        };
+
+        // =================================================================
+        // 2. SOUND SYSTEM (SFX)
+        // =================================================================
+        const audioEls = {
+            bg: document.getElementById('bg-music'),
+            click: document.getElementById('sfx-click'),
+            hover: document.getElementById('sfx-hover'),
+            insert: document.getElementById('sfx-insert')
+        };
+
+        // Setup Sources
+        audioEls.bg.src = ASSETS.bgMusic;
+        audioEls.click.src = ASSETS.clickSfx;
+        audioEls.hover.src = ASSETS.hoverSfx;
+        audioEls.insert.src = ASSETS.insertSfx;
+
+        // SFX Helper
+        function playSfx(type) {
+            if(audioEls[type]) {
+                audioEls[type].currentTime = 0;
+                // Use promise to catch errors if files are missing
+                audioEls[type].play().catch(e => console.log("Audio file missing or not ready: " + type));
+            }
+        }
+
+        // Bind Hover Effects
+        document.querySelectorAll('.sfx-trigger').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                // Low volume for hover
+                audioEls.hover.volume = 0.2;
+                playSfx('hover');
+            });
+            el.addEventListener('mousedown', () => playSfx('click'));
+        });
+
+        // =================================================================
+        // 3. WEB AUDIO VISUALIZER
+        // =================================================================
+        let audioCtx, analyser, source, dataArray, canvas, canvasCtx;
+        let isAudioInitialized = false;
+
+        function initAudioSystem() {
+            if (isAudioInitialized) return;
+            
+            // Create Audio Context
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            // Setup Visualizer Nodes
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64; // Controls bar count (lower = chunkier retro look)
+            
+            // Connect Source
+            source = audioCtx.createMediaElementSource(audioEls.bg);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            // Setup Canvas
+            canvas = document.getElementById('visualizer');
+            canvasCtx = canvas.getContext('2d');
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+
+            // Start Animation Loop
+            drawVisualizer();
+            isAudioInitialized = true;
+
+            // Start Music
+            audioEls.bg.play().catch(e => console.log("Music missing"));
+        }
+
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
+            
+            analyser.getByteFrequencyData(dataArray);
+
+            // Clear canvas
+            canvasCtx.fillStyle = '#2b3a28'; // LCD Background
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const barWidth = (canvas.width / dataArray.length) * 2;
+            let barHeight;
+            let x = 0;
+
+            for(let i = 0; i < dataArray.length; i++) {
+                barHeight = dataArray[i] / 2; // Scale down
+
+                // Retro Green Color
+                canvasCtx.fillStyle = `rgb(50, ${barHeight + 100}, 50)`;
+                
+                // Draw rectangular bars
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                x += barWidth + 1;
+            }
+        }
+
+        // =================================================================
+        // 4. SYSTEM CONTROL (POWER & NAVIGATION)
+        // =================================================================
+        
+        // Power On Button
+        document.getElementById('power-btn').addEventListener('click', () => {
+            const overlay = document.getElementById('power-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 500);
+            
+            // Reveal Deck
+            document.getElementById('deck').style.opacity = '1';
+            
+            // Start Audio System
+            playSfx('click');
+            initAudioSystem();
+        });
+
+        // Music Control
+        function musicControl(action) {
+            if(action === 'play') {
+                if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                audioEls.bg.play();
+            } else {
+                audioEls.bg.pause();
+            }
+        }
+
+        // Navigation Logic
+        function switchTrack(sectionId) {
+            playSfx('insert'); // Play tape insert sound
+            
+            // Screen Animation
+            const screen = document.getElementById('screen');
+            
+            // Close Screen
+            gsap.to(screen, {
+                scaleY: 0.01,
+                duration: 0.1,
+                onComplete: () => {
+                    document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+                    document.getElementById(sectionId).classList.add('active');
+                    // Open Screen
+                    gsap.to(screen, { scaleY: 1, duration: 0.2, delay: 0.15 });
+                }
+            });
+
+            // Update Disks Animation
+            const disks = document.querySelectorAll('.spin-disk');
+            if(sectionId === 'portfolio') {
+                disks.forEach(d => d.style.animation = 'spin 2s infinite linear');
+            }
+        }
+
+        // Theme Toggle
+        let isNight = true;
+        function toggleTheme() {
+            const root = document.documentElement;
+            if (isNight) {
+                root.style.setProperty('--bg-dark', '#EBE5CE');
+                root.style.setProperty('--plastic-black', '#d4cfb8');
+                root.style.setProperty('--text-main', '#333');
+                root.style.setProperty('--neon-cyan', '#0055aa');
+            } else {
+                root.style.setProperty('--bg-dark', '#1a1a1a');
+                root.style.setProperty('--plastic-black', '#0a0a0a');
+                root.style.setProperty('--text-main', '#e0e0e0');
+                root.style.setProperty('--neon-cyan', '#00f0ff');
+            }
+            isNight = !isNight;
+        }
+
+        // Noise Effect for Playground
+        const nCanvas = document.getElementById('noiseCanvas');
+        if(nCanvas) {
+            const nCtx = nCanvas.getContext('2d');
+            function drawNoise() {
+                const w = nCanvas.width;
+                const h = nCanvas.height;
+                const idata = nCtx.createImageData(w, h);
+                const buffer32 = new Uint32Array(idata.data.buffer);
+                for (let i = 0; i < buffer32.length; i++) {
+                    buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
+                }
+                nCtx.putImageData(idata, 0, 0);
+                requestAnimationFrame(drawNoise);
+            }
+            drawNoise();
+        }
+
+    </script>
+    <style>
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>
