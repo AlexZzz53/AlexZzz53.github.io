@@ -6,7 +6,6 @@
     <title>RETRO // CASSETTE // DECK</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
-    <!-- 引入 RemixIcon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     
     <style>
@@ -100,7 +99,6 @@
         
         .content-section { display: none; text-align: center; width: 100%; height: 100%; overflow-y: auto; }
         .content-section.active { display: block; animation: turnOn 0.4s ease-out; }
-        /* Hide scrollbar for chrome */
         .content-section::-webkit-scrollbar { width: 0px; background: transparent; }
 
         h1 {
@@ -178,127 +176,76 @@
             position: relative;
             overflow: hidden;
         }
-        #visualizer { width: 100%; height: 100%; display: block; }
+        
+        /* Now Playing Text Overlay */
+        #now-playing {
+            position: absolute;
+            top: 0; left: 0; width: 100%; padding: 2px 5px;
+            font-size: 0.8rem; color: var(--led-green);
+            background: rgba(0,0,0,0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #visualizer { width: 100%; height: 100%; display: block; margin-top: 10px; /* Push down slightly */ }
         
         .buttons-row { display: flex; gap: 10px; justify-content: center; }
-        
         .mech-btn {
             width: 40px; height: 40px;
             background: #888;
             border: none;
             border-bottom: 4px solid #555;
             border-radius: 50%;
-            font-size: 14px; /* Adjust for unicode icons */
+            font-size: 14px;
         }
         .mech-btn:active { transform: translateY(2px); border-bottom: 1px solid #555; }
         .mech-btn.play { background: var(--neon-cyan); }
         .mech-btn.stop { background: var(--neon-pink); }
 
-        /* --- Glitch Text --- */
-        .glitch-text { position: relative; }
-        .glitch-text::before, .glitch-text::after {
-            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        }
-        .glitch-text::before {
-            left: 2px; text-shadow: -1px 0 red; clip: rect(24px, 550px, 90px, 0);
-            animation: glitch-anim 2s infinite linear alternate-reverse;
-        }
-        .glitch-text::after {
-            left: -2px; text-shadow: -1px 0 blue; clip: rect(85px, 550px, 140px, 0);
-            animation: glitch-anim 2s infinite linear alternate-reverse;
-        }
-        @keyframes glitch-anim {
-            0% { clip: rect(10px, 9999px, 30px, 0); }
-            20% { clip: rect(80px, 9999px, 100px, 0); }
-            100% { clip: rect(20px, 9999px, 70px, 0); }
-        }
-
-        /* =========================================
-           SPECIFIC CONTENT STYLES
-           ========================================= */
-
-        /* Profile Styles */
-        .profile-container {
-            text-align: left;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            font-family: 'VT323', monospace;
-        }
-        .id-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            border-bottom: 2px dashed var(--neon-cyan);
-            padding-bottom: 15px;
-        }
-        .pixel-avatar {
-            width: 80px; height: 80px;
-            background: var(--neon-cyan); color: #000;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 2.5rem; font-family: 'Press Start 2P';
-            box-shadow: 5px 5px 0px var(--neon-pink);
-            animation: pulse-avatar 3s infinite;
-        }
+        /* --- Specific Content Styles (Profile/Tools/etc) --- */
+        /* (保留原有的所有内部样式) */
+        .profile-container { text-align: left; width: 100%; display: flex; flex-direction: column; gap: 15px; font-family: 'VT323', monospace; }
+        .id-header { display: flex; align-items: center; gap: 20px; border-bottom: 2px dashed var(--neon-cyan); padding-bottom: 15px; }
+        .pixel-avatar { width: 80px; height: 80px; background: var(--neon-cyan); color: #000; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-family: 'Press Start 2P'; box-shadow: 5px 5px 0px var(--neon-pink); animation: pulse-avatar 3s infinite; }
         .id-text h2 { margin: 0; font-size: 2.5rem; color: var(--neon-yellow); line-height: 1; text-transform: uppercase; }
         .role-tags { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-        .tag {
-            font-size: 1rem; padding: 2px 6px;
-            background: rgba(255, 0, 85, 0.2);
-            border: 1px solid var(--neon-pink); color: var(--neon-pink);
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .stats-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            font-size: 1.3rem; color: var(--text-main);
-        }
+        .tag { font-size: 1rem; padding: 2px 6px; background: rgba(255, 0, 85, 0.2); border: 1px solid var(--neon-pink); color: var(--neon-pink); text-transform: uppercase; letter-spacing: 1px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.3rem; color: var(--text-main); }
         .stat-item { display: flex; align-items: center; gap: 10px; }
         .stat-item i { color: var(--neon-cyan); font-size: 1.2rem; text-shadow: 0 0 5px var(--neon-cyan); }
         .val { color: #fff; }
-        .edu-block {
-            background: rgba(0, 240, 255, 0.05);
-            border-left: 4px solid var(--neon-cyan);
-            padding: 10px; margin-top: 5px;
-        }
+        .edu-block { background: rgba(0, 240, 255, 0.05); border-left: 4px solid var(--neon-cyan); padding: 10px; margin-top: 5px; }
         .edu-title { color: var(--neon-cyan); font-size: 1.1rem; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
         .edu-detail { font-size: 1.2rem; line-height: 1.4; }
-
-        /* Tools Styles */
+        
         .stack-container { text-align: left; font-family: 'VT323'; }
         .tech-section { margin-bottom: 20px; }
-        .tech-head {
-            color: var(--neon-yellow); font-size: 1.3rem; 
-            border-bottom: 1px solid #444; margin-bottom: 10px;
-            display: flex; justify-content: space-between;
-        }
+        .tech-head { color: var(--neon-yellow); font-size: 1.3rem; border-bottom: 1px solid #444; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .tech-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-        .tech-chip {
-            background: #222; border: 1px solid #555;
-            padding: 4px 8px; font-size: 1.1rem; color: var(--neon-cyan);
-            transition: 0.2s; display: flex; align-items: center; gap: 5px;
-        }
+        .tech-chip { background: #222; border: 1px solid #555; padding: 4px 8px; font-size: 1.1rem; color: var(--neon-cyan); transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .tech-chip:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); }
         .lang-chip { border-color: var(--neon-pink); color: var(--neon-pink); }
         .lang-chip:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 10px var(--neon-pink); }
-
-        @keyframes pulse-avatar {
-            0%, 100% { transform: scale(1); filter: brightness(1); }
-            50% { transform: scale(1.02); filter: brightness(1.2); }
-        }
+        .glitch-text { position: relative; }
+        .glitch-text::before, .glitch-text::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .glitch-text::before { left: 2px; text-shadow: -1px 0 red; clip: rect(24px, 550px, 90px, 0); animation: glitch-anim 2s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -2px; text-shadow: -1px 0 blue; clip: rect(85px, 550px, 140px, 0); animation: glitch-anim 2s infinite linear alternate-reverse; }
+        @keyframes glitch-anim { 0% { clip: rect(10px, 9999px, 30px, 0); } 20% { clip: rect(80px, 9999px, 100px, 0); } 100% { clip: rect(20px, 9999px, 70px, 0); } }
+        @keyframes pulse-avatar { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.02); filter: brightness(1.2); } }
 
     </style>
 </head>
 <body>
 
-    <!-- 0. Power On Overlay -->
+    <!-- Power On -->
     <div id="power-overlay">
         <h1 style="font-size: 1rem; margin-bottom: 20px; color: #fff; font-family: monospace;">SYSTEM OFFLINE</h1>
         <button id="power-btn">INITIALIZE SYSTEM</button>
     </div>
 
-    <!-- Audio Placeholders -->
-    <audio id="bg-music" loop crossorigin="anonymous"></audio>
+    <!-- Audio & SFX -->
+    <audio id="bg-music" crossorigin="anonymous"></audio> <!-- Removed 'loop' so we can detect end -->
     <audio id="sfx-click"></audio>
     <audio id="sfx-hover"></audio>
     <audio id="sfx-insert"></audio>
@@ -307,13 +254,12 @@
 
     <div class="main-deck" id="deck">
         
-        <!-- SCREEN AREA -->
+        <!-- SCREEN -->
         <div class="screen-container" id="screen">
             
-            <!-- 1. Profile Section -->
+            <!-- Profile -->
             <section id="profile" class="content-section active">
                 <div class="profile-container">
-                    <!-- Header -->
                     <div class="id-header">
                         <div class="pixel-avatar">AZ</div>
                         <div class="id-text">
@@ -327,53 +273,22 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Stats Grid -->
                     <div class="stats-grid">
-                        <div class="stat-item">
-                            <i class="ri-calendar-line"></i>
-                            <span>MFG_DATE: <span class="val">2004.05.03</span></span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="ri-star-line"></i>
-                            <span>STAR: <span class="val">TAURUS ♉</span></span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="ri-ruler-line"></i>
-                            <span>HEIGHT: <span class="val">179.2 CM</span></span>
-                        </div>
-                         <div class="stat-item">
-                            <i class="ri-scales-3-line"></i>
-                            <span>WEIGHT: <span class="val">68.5 KG</span></span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="ri-drop-line"></i>
-                            <span>BLOOD: <span class="val" style="color:red; animation:flicker 0.2s infinite;">ERR_404</span></span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="ri-translate-2"></i>
-                            <span>LANG: <span class="val">CN / EN</span></span>
-                        </div>
+                        <div class="stat-item"><i class="ri-calendar-line"></i><span>MFG_DATE: <span class="val">2004.05.03</span></span></div>
+                        <div class="stat-item"><i class="ri-star-line"></i><span>STAR: <span class="val">TAURUS ♉</span></span></div>
+                        <div class="stat-item"><i class="ri-ruler-line"></i><span>HEIGHT: <span class="val">179.2 CM</span></span></div>
+                         <div class="stat-item"><i class="ri-scales-3-line"></i><span>WEIGHT: <span class="val">68.5 KG</span></span></div>
+                        <div class="stat-item"><i class="ri-drop-line"></i><span>BLOOD: <span class="val" style="color:red; animation:flicker 0.2s infinite;">ERR_404</span></span></div>
+                        <div class="stat-item"><i class="ri-translate-2"></i><span>LANG: <span class="val">CN / EN</span></span></div>
                     </div>
-
-                    <!-- Academic -->
                     <div class="edu-block">
-                        <div class="edu-title">
-                            <i class="ri-government-fill"></i> ACADEMIC_LOG [ShanghaiTech Univ]
-                        </div>
-                        <div class="edu-detail">
-                            > MAJOR: <span style="color:var(--neon-yellow)">COMPUTER_SCIENCE</span><br>
-                            > MINOR: <span style="color:var(--neon-pink)">INTERACTION_DESIGN</span>
-                        </div>
-                    </div>
-                    
-                    <div style="font-size:0.8rem; color:#666; margin-top:auto; padding-top:10px;">
-                        // SYSTEM_READY... WAITING FOR INPUT_
+                        <div class="edu-title"><i class="ri-government-fill"></i> ACADEMIC_LOG [ShanghaiTech Univ]</div>
+                        <div class="edu-detail">> MAJOR: <span style="color:var(--neon-yellow)">COMPUTER_SCIENCE</span><br>> MINOR: <span style="color:var(--neon-pink)">INTERACTION_DESIGN</span></div>
                     </div>
                 </div>
             </section>
 
-            <!-- 2. Portfolio (Gallery) -->
+            <!-- Portfolio -->
             <section id="portfolio" class="content-section">
                 <h1>LOADING MEDIA: <br><span style="color:var(--neon-pink)">GALLERY.mp4</span></h1>
                 <div style="display:flex; gap:20px; justify-content:center; margin-top:30px;">
@@ -383,17 +298,12 @@
                 <p style="margin-top:20px;">BUFFERING 99%...</p>
             </section>
 
-            <!-- 3. Tools & Gear -->
+            <!-- Tools -->
             <section id="stack" class="content-section">
                 <div class="stack-container">
                     <h1>SYSTEM ARCHITECTURE</h1>
-                    
-                    <!-- Software -->
                     <div class="tech-section">
-                        <div class="tech-head">
-                            <span>>> INSTALLED_SOFTWARE</span>
-                            <span>[v.2025]</span>
-                        </div>
+                        <div class="tech-head"><span>>> INSTALLED_SOFTWARE</span><span>[v.2025]</span></div>
                         <div class="tech-grid">
                             <div class="tech-chip"><i class="ri-video-fill"></i> PR</div>
                             <div class="tech-chip"><i class="ri-image-edit-fill"></i> PS</div>
@@ -402,13 +312,8 @@
                             <div class="tech-chip"><i class="ri-pen-nib-fill"></i> FIGMA</div>
                         </div>
                     </div>
-
-                    <!-- Coding -->
                     <div class="tech-section">
-                        <div class="tech-head">
-                            <span>>> KERNEL / LANGUAGES</span>
-                            <span>[ROOT]</span>
-                        </div>
+                        <div class="tech-head"><span>>> KERNEL / LANGUAGES</span><span>[ROOT]</span></div>
                         <div class="tech-grid">
                             <div class="tech-chip lang-chip">PYTHON</div>
                             <div class="tech-chip lang-chip">C/C++</div>
@@ -418,17 +323,16 @@
                             <div class="tech-chip lang-chip">JAVASCRIPT</div>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- 4. Playground -->
+            <!-- Playground -->
             <section id="playground" class="content-section">
                 <h1 style="font-family:'Courier New';">EXECUTING...<br>PLAYGROUND.exe</h1>
                 <canvas id="noiseCanvas" style="width: 200px; height: 100px; background:#000; margin: 20px auto;"></canvas>
             </section>
 
-            <!-- 5. Contact -->
+            <!-- Contact -->
             <section id="contact" class="content-section">
                 <h1>OPENING FILE:<br>CONTACT.psd</h1>
                 <input type="text" placeholder="ENTER_MESSAGE..." style="background:transparent; border:none; border-bottom:2px solid var(--neon-cyan); color:white; font-family:'VT323'; font-size:2rem; margin-top:20px; width:80%; outline:none;">
@@ -438,46 +342,33 @@
 
         </div>
 
-        <!-- CONTROLS AREA -->
+        <!-- CONTROLS -->
         <div class="control-panel">
             <div>
                 <div style="color:#666; font-size:0.8rem; margin-bottom:10px;">INSERT CARTRIDGE</div>
-                
-                <div class="tape-slot tape-1 sfx-trigger" onclick="switchTrack('profile')">
-                    <div class="tape-label">PROFILE.pdf</div>
-                </div>
-                <div class="tape-slot tape-2 sfx-trigger" onclick="switchTrack('portfolio')">
-                    <div class="tape-label">GALLERY.mp4</div>
-                </div>
-                <div class="tape-slot tape-3 sfx-trigger" onclick="switchTrack('stack')">
-                    <div class="tape-label">TOOLS&GEAR.py</div>
-                </div>
-                <div class="tape-slot tape-4 sfx-trigger" onclick="switchTrack('playground')">
-                    <div class="tape-label">PLAYGROUND.exe</div>
-                </div>
-                <div class="tape-slot tape-5 sfx-trigger" onclick="switchTrack('contact')">
-                    <div class="tape-label">CONTACT.psd</div>
-                </div>
+                <div class="tape-slot tape-1 sfx-trigger" onclick="switchTrack('profile')"><div class="tape-label">PROFILE.pdf</div></div>
+                <div class="tape-slot tape-2 sfx-trigger" onclick="switchTrack('portfolio')"><div class="tape-label">GALLERY.mp4</div></div>
+                <div class="tape-slot tape-3 sfx-trigger" onclick="switchTrack('stack')"><div class="tape-label">TOOLS&GEAR.py</div></div>
+                <div class="tape-slot tape-4 sfx-trigger" onclick="switchTrack('playground')"><div class="tape-label">PLAYGROUND.exe</div></div>
+                <div class="tape-slot tape-5 sfx-trigger" onclick="switchTrack('contact')"><div class="tape-label">CONTACT.psd</div></div>
             </div>
 
-            <!-- Music & Viz -->
+            <!-- Music Player -->
             <div class="player-controls">
                 <div class="lcd-display">
+                    <div id="now-playing">NO DISC</div>
                     <canvas id="visualizer"></canvas>
                 </div>
-                
-                <!-- UPDATED BUTTON ROW -->
                 <div class="buttons-row">
                     <button class="mech-btn sfx-trigger" onclick="toggleTheme()">☀</button>
-                    
-                    <!-- Previous Track -->
-                    <button class="mech-btn sfx-trigger" title="Prev">|◀</button>
-                    
+                    <!-- PREV -->
+                    <button class="mech-btn sfx-trigger" onclick="changeSong(-1)">|◀</button>
+                    <!-- STOP -->
                     <button class="mech-btn stop sfx-trigger" onclick="musicControl('stop')">■</button>
+                    <!-- PLAY -->
                     <button class="mech-btn play sfx-trigger" onclick="musicControl('play')">▶</button>
-                    
-                    <!-- Next Track -->
-                    <button class="mech-btn sfx-trigger" title="Next">▶|</button>
+                    <!-- NEXT -->
+                    <button class="mech-btn sfx-trigger" onclick="changeSong(1)">▶|</button>
                 </div>
             </div>
         </div>
@@ -486,48 +377,99 @@
 
     <script>
         // =================================================================
-        // 1. ASSET CONFIGURATION (PLEASE EDIT THIS)
+        // 1. PLAYLIST & ASSETS CONFIGURATION
         // =================================================================
+        
+        // 在这里填入你所有的音乐文件名
+        // 建议把音乐放在一个名为 'music' 的文件夹里，路径就是 'music/song1.mp3'
+        const PLAYLIST = [
+            'music/song1.mp3',
+            'music/song2.mp3',
+            'music/song3.mp3',
+            'music/retro_wave.mp3'
+        ];
+
         const ASSETS = {
-            bgMusic: 'music_placeholder.mp3', 
             clickSfx: 'click_placeholder.mp3',
             hoverSfx: 'hover_placeholder.mp3',
             insertSfx: 'insert_placeholder.mp3'
         };
 
         // =================================================================
-        // 2. SOUND SYSTEM
+        // 2. AUDIO LOGIC (UPDATED)
         // =================================================================
-        const audioEls = {
-            bg: document.getElementById('bg-music'),
+        
+        let currentSongIndex = 0;
+        const bgMusic = document.getElementById('bg-music');
+        const nowPlayingText = document.getElementById('now-playing');
+
+        // Initialize source
+        if (PLAYLIST.length > 0) {
+            bgMusic.src = PLAYLIST[0];
+        }
+
+        // Helper: Get filename for display
+        function getSongName(path) {
+            return path.split('/').pop(); // returns 'song1.mp3'
+        }
+
+        function loadAndPlaySong(index) {
+            if (PLAYLIST.length === 0) return;
+            
+            // Wrap around logic
+            if (index >= PLAYLIST.length) currentSongIndex = 0;
+            else if (index < 0) currentSongIndex = PLAYLIST.length - 1;
+            else currentSongIndex = index;
+
+            // Update source
+            bgMusic.src = PLAYLIST[currentSongIndex];
+            nowPlayingText.innerText = "PLAYING: " + getSongName(PLAYLIST[currentSongIndex]);
+            
+            // Play
+            // Need to resume context if needed
+            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            bgMusic.play().catch(e => console.log("Waiting for interaction"));
+        }
+
+        // Change Song Button Function
+        function changeSong(direction) {
+            playSfx('click');
+            loadAndPlaySong(currentSongIndex + direction);
+        }
+
+        // Auto-play next song when current ends
+        bgMusic.addEventListener('ended', () => {
+            changeSong(1); // Next song
+        });
+
+        // =================================================================
+        // 3. SOUND FX & VIZ
+        // =================================================================
+        const sfx = {
             click: document.getElementById('sfx-click'),
             hover: document.getElementById('sfx-hover'),
             insert: document.getElementById('sfx-insert')
         };
-
-        audioEls.bg.src = ASSETS.bgMusic;
-        audioEls.click.src = ASSETS.clickSfx;
-        audioEls.hover.src = ASSETS.hoverSfx;
-        audioEls.insert.src = ASSETS.insertSfx;
+        sfx.click.src = ASSETS.clickSfx;
+        sfx.hover.src = ASSETS.hoverSfx;
+        sfx.insert.src = ASSETS.insertSfx;
 
         function playSfx(type) {
-            if(audioEls[type]) {
-                audioEls[type].currentTime = 0;
-                audioEls[type].play().catch(e => {});
+            if(sfx[type]) {
+                sfx[type].currentTime = 0;
+                sfx[type].play().catch(()=>{});
             }
         }
 
         document.querySelectorAll('.sfx-trigger').forEach(el => {
             el.addEventListener('mouseenter', () => {
-                audioEls.hover.volume = 0.2;
+                sfx.hover.volume = 0.2;
                 playSfx('hover');
             });
             el.addEventListener('mousedown', () => playSfx('click'));
         });
 
-        // =================================================================
-        // 3. WEB AUDIO VISUALIZER
-        // =================================================================
+        // Visualizer Setup
         let audioCtx, analyser, source, dataArray, canvas, canvasCtx;
         let isAudioInitialized = false;
 
@@ -537,7 +479,8 @@
             audioCtx = new AudioContext();
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 64; 
-            source = audioCtx.createMediaElementSource(audioEls.bg);
+            
+            source = audioCtx.createMediaElementSource(bgMusic);
             source.connect(analyser);
             analyser.connect(audioCtx.destination);
 
@@ -547,27 +490,29 @@
 
             drawVisualizer();
             isAudioInitialized = true;
-            audioEls.bg.play().catch(e => {});
+            
+            // Start playing first song on power on
+            loadAndPlaySong(0);
         }
 
         function drawVisualizer() {
             requestAnimationFrame(drawVisualizer);
             analyser.getByteFrequencyData(dataArray);
-            canvasCtx.fillStyle = '#2b3a28';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height); // Clear transparently
+            
             const barWidth = (canvas.width / dataArray.length) * 2;
             let barHeight;
             let x = 0;
             for(let i = 0; i < dataArray.length; i++) {
-                barHeight = dataArray[i] / 2;
-                canvasCtx.fillStyle = `rgb(50, ${barHeight + 100}, 50)`;
+                barHeight = dataArray[i] / 2.5; // Scale down slightly
+                canvasCtx.fillStyle = `rgba(50, ${barHeight + 100}, 50, 0.8)`; // Semi-transparent green
                 canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
                 x += barWidth + 1;
             }
         }
 
         // =================================================================
-        // 4. SYSTEM CONTROL
+        // 4. GLOBAL CONTROLS
         // =================================================================
         
         document.getElementById('power-btn').addEventListener('click', () => {
@@ -582,9 +527,11 @@
         function musicControl(action) {
             if(action === 'play') {
                 if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-                audioEls.bg.play();
+                bgMusic.play();
+                nowPlayingText.innerText = "PLAYING: " + getSongName(PLAYLIST[currentSongIndex]);
             } else {
-                audioEls.bg.pause();
+                bgMusic.pause();
+                nowPlayingText.innerText = "PAUSED";
             }
         }
 
@@ -600,8 +547,6 @@
                     gsap.to(screen, { scaleY: 1, duration: 0.2, delay: 0.15 });
                 }
             });
-
-            // Animation hook for Portfolio
             const disks = document.querySelectorAll('.spin-disk');
             if(sectionId === 'portfolio') {
                 disks.forEach(d => d.style.animation = 'spin 2s infinite linear');
@@ -641,13 +586,9 @@
             }
             drawNoise();
         }
-
     </script>
     <style>
         @keyframes spin { 100% { transform: rotate(360deg); } }
-    </style>
-</body>
-</html>
     </style>
 </body>
 </html>
