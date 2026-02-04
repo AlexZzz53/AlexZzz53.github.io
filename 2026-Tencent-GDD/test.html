@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDD: Neon Blade (详细落地版)</title>
+    <style>
+        :root {
+            --primary: #0052cc;
+            --bg-body: #f4f5f7;
+            --bg-sidebar: #ebecf0;
+            --text-main: #172b4d;
+            --border: #dfe1e6;
+            --code-bg: #282c34;
+            --note-bg: #fff0b3;
+            --note-text: #172b4d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 280px;
+            background-color: #fafbfc;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .project-title { font-size: 20px; font-weight: 800; color: #091e42; margin-bottom: 20px; letter-spacing: -0.5px; }
+        .nav-group { margin-bottom: 20px; }
+        .nav-header { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #5e6c84; margin-bottom: 8px; }
+        .nav-item { display: block; padding: 8px 10px; color: #42526e; text-decoration: none; border-radius: 3px; font-size: 14px; margin-bottom: 2px; }
+        .nav-item:hover { background-color: #ebecf0; color: #091e42; }
+        .nav-item.active { background-color: #e6effc; color: #0052cc; font-weight: 500; }
+
+        /* 主内容区 */
+        .content {
+            flex: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+            background-color: white;
+            scroll-behavior: smooth;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; }
+
+        /* 排版元素 */
+        h1 { font-size: 36px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        h2 { font-size: 24px; margin-top: 40px; margin-bottom: 15px; color: #172b4d; display: flex; align-items: center; }
+        h3 { font-size: 18px; margin-top: 25px; margin-bottom: 10px; color: #42526e; }
+        p { line-height: 1.6; color: #42526e; margin-bottom: 15px; }
+        
+        /* 状态标签 */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        .badge-green { background: #e3fcef; color: #006644; } /* 完成 */
+        .badge-yellow { background: #fff0b3; color: #172b4d; } /* 进行中 */
+        .badge-red { background: #ffebe6; color: #de350b; }   /* 待定 */
+
+        /* 表格 */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        th { background-color: #f4f5f7; text-align: left; font-weight: 600; color: #5e6c84; }
+        th, td { border: 1px solid var(--border); padding: 10px 12px; }
+        tr:hover { background-color: #fafbfc; }
+
+        /* 逻辑块/代码块 */
+        .logic-box {
+            background-color: #f4f5f7;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 4px 4px 0;
+            margin: 15px 0;
+        }
+        .logic-step { display: flex; margin-bottom: 8px; align-items: baseline; }
+        .step-num { font-weight: bold; color: var(--primary); margin-right: 10px; min-width: 20px; }
+        
+        .code-block {
+            background-color: var(--code-bg);
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .number { color: #d19a66; }
+        .comment { color: #5c6370; font-style: italic; }
+
+        /* 开发者备注 */
+        .dev-note {
+            background-color: #deebff;
+            border: 1px solid #b3d4ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 13px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .dev-note-icon { margin-right: 10px; font-size: 16px; }
+
+        /* 资产列表 */
+        .asset-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .asset-card { border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: white; }
+        .asset-id { font-family: monospace; font-size: 11px; color: #888; margin-bottom: 5px; }
+        .asset-name { font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+        .asset-desc { font-size: 12px; color: #666; }
+        .asset-tag { font-size: 10px; padding: 2px 4px; background: #eee; border-radius: 3px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 侧边导航 -->
+    <div class="sidebar">
+        <div class="project-title">⚡ Neon Blade</div>
+        
+        <div class="nav-group">
+            <div class="nav-header">文档信息</div>
+            <a href="#changelog" class="nav-item">版本记录 (Changelog)</a>
+            <a href="#overview" class="nav-item">1. 游戏概览</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-header">核心机制</div>
+            <a href="#player-state" class="nav-item active">2. 角色状态机</a>
+            <a href="#combat-logic" class="nav-item">3. 战斗与弹反</a>
+            <a href="#ai-behavior" class="nav-item">4. 怪物AI逻辑</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-header">资源与数据</div>
+            <a href="#data-structure" class="nav-item">5. 数据结构 (JSON)</a>
+            <a href="#asset-req" class="nav-item">6. 美术/音效需求表</a>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content">
+        <div class="container">
+            
+            <h1 id="changelog">游戏设计文档 (GDD) <span class="badge badge-yellow">v0.8 Beta</span></h1>
+            
+            <!-- 版本记录表 -->
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:100px">版本</th>
+                        <th style="width:120px">日期</th>
+                        <th>修改内容</th>
+                        <th style="width:100px">修改人</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>v0.8</td>
+                        <td>2024-03-20</td>
+                        <td>补充怪物AI行为树；更新弹反判定帧数</td>
+                        <td>张三</td>
+                    </tr>
+                    <tr>
+                        <td>v0.5</td>
+                        <td>2024-03-15</td>
+                        <td>完成核心3C手感定义；初版战斗逻辑</td>
+                        <td>李四</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="overview">1. 游戏概览</h2>
+            <p>《Neon Blade》是一款强调<b>“节奏感”</b>与<b>“瞬间反应”</b>的俯视角动作Roguelike。核心体验循环为：进入房间 -> 快速识别怪物前摇 -> 完美弹反/闪避 -> 处决 -> 获得强化。</p>
+
+            <h2 id="player-state">2. 角色状态机 (Player State Machine) <span class="badge badge-green">Stable</span></h2>
+            <p>为了保证手感严谨，角色的所有行动必须严格遵循以下状态流转。请程序严格按照此逻辑编写 `PlayerController`。</p>
+
+            <div class="logic-box">
+                <h3>🗡️ 攻击动作拆解 (Light Attack)</h3>
+                <div class="logic-step">
+                    <span class="step-num">1.</span>
+                    <div><b>前摇 (Startup):</b> 0.1s <span class="badge badge-red">不可打断</span><br><small>播放挥刀抬手动画，检测输入缓存。</small></div>
+                </div>
+                <div class="logic-step">
+                    <span class="step-num">2.</span>
+                    <div><b>判定 (Active):</b> 0.2s <span class="badge badge-red">产生伤害框</span><br><small>开启 Weapon_Collider，检测与 Enemy_Hurtbox 的碰撞。</small></div>
+                </div>
+                <div class="logic-step">
+                    <span class="step-num">3.</span>
+                    <div><b>后摇 (Recovery):</b> 0.3s <span class="badge badge-yellow">可被闪避取消</span><br><small>动作收尾。如果在 0.1s~0.3s 区间内按下闪避，立即切换至 Dash 状态。</small></div>
+                </div>
+            </div>
+
+            <div class="dev-note">
+                <div class="dev-note-icon">👨‍💻</div>
+                <div>
+                    <b>程序注意：</b> 请实现一个 `InputBuffer` (输入缓存) 系统。如果玩家在“后摇”最后 0.1s 内按下了攻击键，下一段攻击应该在后摇结束后自动触发，而不是忽略该输入。
+                </div>
+            </div>
+
+            <h2 id="combat-logic">3. 战斗与弹反逻辑 <span class="badge badge-yellow">Testing</span></h2>
+            
+            <h3>3.1 弹反 (Parry) 核心参数</h3>
+            <table>
+                <tr>
+                    <th>参数名 (Variable)</th>
+                    <th>数值 (Value)</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td><code>Parry_Window_Perfect</code></td>
+                    <td>0.15s</td>
+                    <td>完美弹反判定时长（高风险）</td>
+                </tr>
+                <tr>
+                    <td><code>Parry_Window_Normal</code></td>
+                    <td>0.30s</td>
+                    <td>普通格挡时长（低风险）</td>
+                </tr>
+                <tr>
+                    <td><code>Parry_Cooldown</code></td>
+                    <td>0.80s</td>
+                    <td>弹反失败后的惩罚CD</td>
+                </tr>
+            </table>
+
+            <h3>3.2 命中反馈 (Hit Feedback / Juice)</h3>
+            <p>当<b>完美弹反</b>成功时，必须执行以下“顿帧”逻辑以增强打击感：</p>
+            <div class="code-block">
+                <span class="keyword">function</span> <span class="string">OnPerfectParry</span>() {<br>
+                &nbsp;&nbsp;<span class="comment">// 1. 顿帧：全场时间暂停 0.15秒</span><br>
+                &nbsp;&nbsp;Time.timeScale = <span class="number">0.0</span>;<br>
+                &nbsp;&nbsp;WaitRealtime(<span class="number">0.15</span>);<br>
+                &nbsp;&nbsp;Time.timeScale = <span class="number">1.0</span>;<br><br>
+                &nbsp;&nbsp;<span class="comment">// 2. 镜头震动</span><br>
+                &nbsp;&nbsp;Camera.Shake(<span class="string">"Heavy"</span>, <span class="number">0.3s</span>);<br><br>
+                &nbsp;&nbsp;<span class="comment">// 3. 视觉畸变</span><br>
+                &nbsp;&nbsp;PostProcess.ChromaticAberration.Pulse();<br>
+                }
+            </div>
+
+            <h2 id="ai-behavior">4. 怪物AI逻辑：近战兵 (Melee Drone)</h2>
+            <p>使用行为树 (Behavior Tree) 实现。</p>
+            
+            <div class="logic-box">
+                <div class="logic-step">
+                    <span class="step-num">IDLE</span>
+                    <div><b>待机：</b> 播放呼吸动画。检测玩家是否进入 <code>Detection_Radius</code> (8米)。</div>
+                </div>
+                <div class="logic-step">
+                    <span class="step-num">CHASE</span>
+                    <div><b>追击：</b> 移动向玩家。如果距离 < <code>Attack_Range</code> (1.5米)，停止移动，准备攻击。</div>
+                </div>
+                <div class="logic-step">
+                    <span class="step-num">WARN</span>
+                    <div><b>预警 (关键)：</b> 播放红光闪烁特效 (0.5s)。<br><i>*这是留给玩家反应弹反的时间窗口。</i></div>
+                </div>
+                <div class="logic-step">
+                    <span class="step-num">ATK</span>
+                    <div><b>攻击：</b> 快速冲刺并造成伤害。</div>
+                </div>
+            </div>
+
+            <h2 id="data-structure">5. 数据结构 (JSON Example)</h2>
+            <p>武器配置表 `WeaponTable.json` 的结构定义。策划将通过Excel导出此格式。</p>
+            
+            <div class="code-block">
+{
+  <span class="string">"id"</span>: <span class="number">1001</span>,
+  <span class="string">"name"</span>: <span class="string">"等离子太刀"</span>,
+  <span class="string">"type"</span>: <span class="string">"Melee"</span>,
+  <span class="string">"stats"</span>: {
+    <span class="string">"attack"</span>: <span class="number">45</span>,
+    <span class="string">"attack_speed"</span>: <span class="number">1.2</span>,
+    <span class="string">"crit_rate"</span>: <span class="number">0.05</span>
+  },
+  <span class="string">"combo_chain"</span>: [
+    { <span class="string">"anim"</span>: <span class="string">"atk_light_1"</span>, <span class="string">"damage_mult"</span>: <span class="number">1.0</span> },
+    { <span class="string">"anim"</span>: <span class="string">"atk_light_2"</span>, <span class="string">"damage_mult"</span>: <span class="number">1.2</span> },
+    { <span class="string">"anim"</span>: <span class="string">"atk_heavy_finisher"</span>, <span class="string">"damage_mult"</span>: <span class="number">2.5</span> }
+  ]
+}
+            </div>
+
+            <h2 id="asset-req">6. 美术与音效需求表 (Asset List)</h2>
+            <p>请美术/音频组根据以下ID进行资源制作与命名。</p>
+
+            <div class="asset-list">
+                <!-- 资产卡片 1 -->
+                <div class="asset-card">
+                    <div class="asset-id">VFX_PARRY_SUCCESS</div>
+                    <div class="asset-name">特效：完美弹反</div>
+                    <div class="asset-desc">爆发性的圆形冲击波，带霓虹蓝色粒子，高亮度。</div>
+                    <span class="asset-tag">VFX</span> <span class="asset-tag">P0 (高优)</span>
+                </div>
+
+                <!-- 资产卡片 2 -->
+                <div class="asset-card">
+                    <div class="asset-id">SFX_BLADE_HIT_FLESH</div>
+                    <div class="asset-name">音效：刀砍肉</div>
+                    <div class="asset-desc">湿润、沉闷的切割声，需要有低频打击感。</div>
+                    <span class="asset-tag">Audio</span>
+                </div>
+
+                <!-- 资产卡片 3 -->
+                <div class="asset-card">
+                    <div class="asset-id">UI_ICON_SKILL_DASH</div>
+                    <div class="asset-name">图标：冲刺技能</div>
+                    <div class="asset-desc">扁平化风格，白色剪影，表现一个人影带残影。</div>
+                    <span class="asset-tag">UI</span>
+                </div>
+            </div>
+
+            <div style="height: 100px;"></div>
+        </div>
+    </div>
+
+</body>
+</html>
