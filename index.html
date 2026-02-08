@@ -367,9 +367,12 @@
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: new URLSearchParams(myFormData).toString()
                 })
-                .then(() => {
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}`);
+                    }
                     // 发送成功后的视觉反馈
-                    playSfx('insert'); 
+                    playSfx('insert');
                     addLogEntry("TRANSMISSION_SUCCESS", msgContent);
                     contactForm.reset(); // 清空输入框
                 })
