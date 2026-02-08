@@ -285,9 +285,17 @@
                     </div>
 
                     <!-- Input Form -->
-                    <input type="text" id="contactMsg" placeholder="ENTER_MESSAGE..." style="background:transparent; border:none; border-bottom:2px solid var(--neon-cyan); color:white; font-family:'VT323'; font-size:1.5rem; width:100%; outline:none;">
-                    <button class="mech-btn-flat sfx-trigger" onclick="saveContact()" style="padding:10px 30px; background:var(--neon-pink); border:none; cursor:pointer; font-family:'Press Start 2P'; align-self:center;">SAVE & SEND</button>
-
+                    <form name="contact" method="POST" data-netlify="true" id="retro-form" style="display:flex; flex-direction:column; gap:10px;">
+                        <input type="hidden" name="form-name" value="contact" />
+                        
+                        <input type="text" name="message" id="contactMsg" placeholder="ENTER_MESSAGE..." required
+                               style="background:transparent; border:none; border-bottom:2px solid var(--neon-cyan); color:white; font-family:'VT323'; font-size:1.5rem; width:100%; outline:none;">
+                        
+                        <button type="submit" class="mech-btn-flat sfx-trigger" 
+                                style="padding:10px 30px; background:var(--neon-pink); border:none; cursor:pointer; font-family:'Press Start 2P'; align-self:center; margin-top:10px;">
+                            SAVE & SEND
+                        </button>
+                    </form>
                     <!-- Message Log (Simulated contact.json) -->
                     <div class="log-container">
                         <div class="log-header">>> TRANSMISSION_LOG (reading contact.json...)</div>
@@ -340,59 +348,60 @@
             insertSfx: 'insert_placeholder.mp3'
         };
 
-        // --- 2. CONTACT SYSTEM (Simulated JSON Write) ---
-        // Github Pages is static, so we use LocalStorage to simulate the contact.json behavior
-        const CONTACT_STORAGE_KEY = 'retro_deck_contact_json';
+        // --- 2. CONTACT SYSTEM (Netlify AJAX) ---
+        
+        // 监听表单提交
+        const contactForm = document.getElementById('retro-form');
+        const listEl = document.getElementById('msg-list');
 
-        function loadContactLog() {
-            const listEl = document.getElementById('msg-list');
-            listEl.innerHTML = '';
-            
-            // Get data (Simulating reading contact.json)
-            const data = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY) || '[]');
-            
-            // Show last 5
-            const recent = data.slice(-5).reverse();
-            
-            if(recent.length === 0) {
-                listEl.innerHTML = '<li class="log-item" style="color:#666;">// NO_DATA_FOUND</li>';
-                return;
-            }
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault(); // 阻止页面刷新
 
-            recent.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'log-item';
-                // Convert timestamp to readable format
-                const date = new Date(item.timestamp);
-                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                
-                li.innerHTML = `<span class="timestamp">[${timeStr}]</span> Visitor left a message`;
-                listEl.appendChild(li);
+                const myFormData = new FormData(contactForm);
+                const msgContent = document.getElementById('contactMsg').value;
+
+                // 提交给 Netlify
+                fetch('/', {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams(myFormData).toString()
+                })
+                .then(() => {
+                    // 发送成功后的视觉反馈
+                    playSfx('insert'); 
+                    addLogEntry("TRANSMISSION_SUCCESS", msgContent);
+                    contactForm.reset(); // 清空输入框
+                })
+                .catch((error) => {
+                    playSfx('stop'); // 错误音效（如果有）
+                    addLogEntry("ERR_CONNECTION_REFUSED", "Try again later");
+                    console.error(error);
+                });
             });
         }
 
-        function saveContact() {
-            const input = document.getElementById('contactMsg');
-            const msg = input.value.trim();
-            if(!msg) return;
+        // 用于在下方黑色日志区域显示反馈的辅助函数
+        function addLogEntry(status, msg) {
+            const li = document.createElement('li');
+            li.className = 'log-item';
+            const date = new Date();
+            const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            
+            // 限制日志显示数量，避免太长
+            if(listEl.children.length > 4) {
+                listEl.removeChild(listEl.firstChild);
+            }
 
-            // Create record
-            const newRecord = {
-                timestamp: Date.now(),
-                message: msg
-            };
-
-            // Read existing (simulated json)
-            const data = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY) || '[]');
-            data.push(newRecord);
-
-            // Write back (simulated save)
-            localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(data));
-
-            // Clear input and reload log
-            input.value = '';
-            loadContactLog();
-            playSfx('insert'); // Feedback sound
+            li.innerHTML = `<span class="timestamp">[${timeStr}]</span> ${status}: ${msg}`;
+            listEl.appendChild(li);
+        }
+        
+        // 初始化时显示的默认日志
+        function loadContactLog() {
+            listEl.innerHTML = '';
+            addLogEntry("SYSTEM", "UPLINK_ESTABLISHED...");
+            addLogEntry("READY", "WAITING_FOR_INPUT");
         }
 
         // --- 3. AUDIO LOGIC ---
