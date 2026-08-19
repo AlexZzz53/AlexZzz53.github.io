@@ -676,7 +676,7 @@
         }
 
         document.querySelectorAll('.sfx-trigger').forEach(el => {
-            el.addEventListener('mouseenter', () => { sfx.hover.volume = 0.2; playSfx('hover'); });
+            el.addEventListener('mouseenter', () => { sfx.hover.volume = 0.4; playSfx('hover'); });
             el.addEventListener('mousedown', () => playSfx('click'));
         });
 
@@ -2325,7 +2325,7 @@ document.getElementById("startBtn").onclick = () => {
   if (siteBgm) { try { siteBgm.pause(); } catch (e) {} }
   const emojiMusic = document.getElementById("emoji-bgm");
   if (emojiMusic) {
-    emojiMusic.volume = 0.35;
+    emojiMusic.volume = 0.3;
     emojiMusic.loop = true;
     if (emojiMusic.paused) emojiMusic.currentTime = 0;
     emojiMusic.play().catch(() => {});
